@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Financial Advisor</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+
+    <style>
+      :root {
+        --primary-color: #2563eb; /* Modern Blue */
+        --secondary-color: #475569; /* Slate Grey */
+        --bg-color: #f1f5f9; /* Light Grey Background */
+        --card-bg: #ffffff; /* White Cards */
+        --chat-user-bg: #2563eb; /* User Bubble Color */
+        --chat-ai-bg: #f8fafc; /* AI Bubble Color */
+        --border-radius: 12px; /* consistent rounding */
+      }
+
+      body {
+        background-color: var(--bg-color);
+        font-family: "Inter", sans-serif;
+        color: #1e293b;
+        height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* Sidebar Styling */
+      .sidebar {
+        background: var(--card-bg);
+        height: 100vh;
+        overflow-y: auto;
+        border-right: 1px solid #e2e8f0;
+        padding: 24px;
+        position: fixed;
+        width: 320px;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+      }
+
+      .main-content {
+        margin-left: 320px;
+        padding: 32px;
+        min-height: 100vh;
+      }
+
+      /* Form Inputs */
+      .form-label {
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: var(--secondary-color);
+        margin-bottom: 0.25rem;
+      }
+
+      .form-control,
+      .form-select {
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        padding: 10px;
+        font-size: 0.9rem;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+
+      .btn-primary:hover {
+        background-color: #1d4ed8;
+        transform: translateY(-1px);
+      }
+
+      /* Dashboard Cards */
+      .stat-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        height: 100%;
+        transition: transform 0.2s;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-2px);
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 8px 0;
+      }
+
+      .stat-label {
+        color: var(--secondary-color);
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      /* Chat Interface */
+      .chat-wrapper {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        height: 600px; /* Fixed height for chat window */
+        overflow: hidden;
+      }
+
+      .chat-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e2e8f0;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .message {
+        max-width: 80%;
+        padding: 12px 16px;
+        border-radius: 16px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        position: relative;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .message.user {
+        background-color: var(--chat-user-bg);
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+      }
+
+      .message.ai {
+        background-color: var(--chat-ai-bg);
+        color: #334155;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+        border: 1px solid #e2e8f0;
+      }
+
+      .chat-input-area {
+        padding: 16px;
+        background: #fff;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        gap: 10px;
+      }
+
+      .chat-input {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 12px 20px;
+        resize: none;
+        height: 48px;
+      }
+
+      .chat-input:focus {
+        background: #fff;
+      }
+
+      .send-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
+
+      /* Mobile Responsive Adjustments */
+      @media (max-width: 992px) {
+        .sidebar {
+          width: 100%;
+          height: auto;
+          position: relative;
+          box-shadow: none;
+          border-right: none;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .main-content {
+          margin-left: 0;
+          padding: 20px;
+        }
+        .chat-wrapper {
+          height: 500px;
+        }
+      }
+
+      /* Typing Animation Dots */
+      .typing-indicator span {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background-color: #cbd5e1;
+        border-radius: 50%;
+        animation: typing 1s infinite;
+        margin: 0 2px;
+      }
+      .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes typing {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-4px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar">
+      <div class="d-flex align-items-center mb-4 text-primary">
+        <i class="bi bi-graph-up-arrow fs-3 me-2"></i>
+        <h4 class="mb-0 fw-bold">FinAdvisor AI</h4>
+      </div>
+
+      <form id="finForm">
+        <h6 class="text-uppercase text-secondary fw-bold mb-3 small">
+          Profile
+        </h6>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label">Currency</label>
+            <select class="form-select" name="currency">
+              <option value="MAD">MAD (Dh)</option>
+              <option value="USD">USD ($)</option>
+              <option value="INR">INR (₹)</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Age</label>
+            <input type="number" class="form-control" name="age" value="30" />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Monthly Income</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0 text-muted"
+              ><i class="bi bi-cash"></i
+            ></span>
+            <input
+              type="number"
+              class="form-control border-start-0 ps-0"
+              name="income"
+              value="15000"
+            />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Occupation</label>
+          <select class="form-select" name="occupation">
+            <option value="Professional">Professional</option>
+            <option value="Self_Employed">Self Employed</option>
+            <option value="Student">Student</option>
+          </select>
+        </div>
+
+        <div class="row g-2 mb-4">
+          <div class="col-6">
+            <label class="form-label">City Tier</label>
+            <select class="form-select" name="city_tier">
+              <option value="Tier_1">Tier 1</option>
+              <option value="Tier_2">Tier 2</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Target Savings %</label>
+            <input
+              type="number"
+              class="form-control"
+              name="desired_savings_pct"
+              value="20"
+            />
+          </div>
+        </div>
+
+        <h6 class="text-uppercase text-secondary fw-bold mb-3 small">
+          Monthly Expenses
+        </h6>
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label small">Groceries</label
+            ><input
+              type="number"
+              class="form-control form-control-sm"
+              name="groceries"
+              value="3000"
+            />
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Transport</label
+            ><input
+              type="number"
+              class="form-control form-control-sm"
+              name="transport"
+              value="1000"
+            />
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Eating Out</label
+            ><input
+              type="number"
+              class="form-control form-control-sm"
+              name="eating_out"
+              value="1500"
+            />
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Fun & Ent.</label
+            ><input
+              type="number"
+              class="form-control form-control-sm"
+              name="entertainment"
+              value="800"
+            />
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Utilities</label
+            ><input
+              type="number"
+              class="form-control form-control-sm"
+              name="utilities"
+              value="1200"
+            />
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Misc</label
+            ><input
+              type="number"
+              class="form-control form-control-sm"
+              name="misc"
+              value="1000"
+            />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-primary w-100 mt-4 shadow-sm"
+          onclick="analyze()"
+        >
+          <i class="bi bi-magic me-2"></i>Generate Analysis
+        </button>
+      </form>
+    </div>
+
+    <div class="main-content">
+      <div id="initial-placeholder" class="text-center py-5">
+        <div
+          class="bg-white p-5 rounded-4 shadow-sm d-inline-block"
+          style="max-width: 600px"
+        >
+          <i class="bi bi-wallet2 display-1 text-primary mb-3"></i>
+          <h2 class="fw-bold mb-3">Ready to optimize your savings?</h2>
+          <p class="text-secondary mb-0">
+            Fill out your financial profile on the sidebar and click
+            <strong>Generate Analysis</strong> to get AI-powered insights and a
+            personalized savings plan.
+          </p>
+        </div>
+      </div>
+
+      <div id="results" style="display: none; animation: fadeIn 0.5s ease">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="fw-bold text-dark m-0">Financial Overview</h3>
+          <span
+            class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill border border-success border-opacity-25"
+            >Analysis Ready</span
+          >
+        </div>
+
+        <div class="row g-4 mb-4">
+          <div class="col-md-4">
+            <div class="stat-card">
+              <div class="stat-label">Projected Savings</div>
+              <div class="stat-value text-primary" id="res_saved">0</div>
+              <div class="d-flex align-items-center text-success small">
+                <i class="bi bi-arrow-up-right me-1"></i> Based on current
+                spending
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card">
+              <div class="stat-label">Efficiency Score</div>
+              <div class="stat-value" id="res_eff">0%</div>
+              <div class="small text-secondary">Savings vs Income Ratio</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card">
+              <div class="stat-label">Top Spending Category</div>
+              <div class="stat-value text-danger" id="res_top">-</div>
+              <div class="small text-secondary">Highest impact area</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-lg-7">
+            <div class="chat-wrapper shadow-sm">
+              <div class="chat-header">
+                <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
+                  <i class="bi bi-robot text-primary"></i>
+                </div>
+                <div>
+                  <h6 class="m-0 fw-bold">AI Financial Assistant</h6>
+                  <small class="text-secondary" style="font-size: 0.75rem"
+                    >Online • Powered by Llama 3</small
+                  >
+                </div>
+              </div>
+
+              <div id="chatBox" class="chat-messages"></div>
+
+              <div class="chat-input-area">
+                <input
+                  type="text"
+                  id="chatIn"
+                  class="form-control chat-input"
+                  placeholder="Ask about your budget, investment tips..."
+                  onkeypress="handleEnter(event)"
+                />
+                <button class="btn btn-primary send-btn" onclick="sendChat()">
+                  <i class="bi bi-send-fill"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-5">
+            <div class="stat-card h-100">
+              <div
+                class="d-flex justify-content-between align-items-center mb-4"
+              >
+                <h5 class="fw-bold m-0">Savings Distribution</h5>
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  onclick="analyze()"
+                >
+                  <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+              </div>
+              <div style="position: relative; height: 300px; width: 100%">
+                <canvas id="chart"></canvas>
+              </div>
+              <div class="mt-3 text-center text-secondary small">
+                <i class="bi bi-info-circle me-1"></i> Visual representation of
+                potential savings per category.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const API = "http://127.0.0.1:8000/api";
+      let currentContext = {};
+      let myChart = null;
+
+      // Allows sending message by pressing Enter
+      function handleEnter(e) {
+        if (e.key === "Enter") sendChat();
+      }
+
+      async function analyze() {
+        // Button Loading State
+        const btn = document.querySelector('button[onclick="analyze()"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+        btn.disabled = true;
+
+        const formData = new FormData(document.getElementById("finForm"));
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+          const res = await fetch(`${API}/predict/`, {
+            method: "POST",
+            body: JSON.stringify(data),
+          });
+          const result = await res.json();
+
+          if (result.error) throw new Error(result.error);
+
+          // Reveal Dashboard
+          document.getElementById("initial-placeholder").style.display = "none";
+          document.getElementById("results").style.display = "block";
+
+          // Populate Metrics
+          document.getElementById("res_saved").innerText =
+            `${result.currency} ${result.total_saved}`;
+          document.getElementById("res_eff").innerText =
+            `${result.efficiency}%`;
+          document.getElementById("res_top").innerText = result.top_cat;
+
+          // Store context for Chat
+          currentContext = result;
+
+          // Render Chart
+          const ctx = document.getElementById("chart");
+          if (myChart) myChart.destroy();
+
+          // Configure Chart styling
+          Chart.defaults.font.family = "'Inter', sans-serif";
+          Chart.defaults.color = "#64748b";
+
+          myChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: result.chart_labels,
+              datasets: [
+                {
+                  label: "Potential Savings",
+                  data: result.chart_data,
+                  backgroundColor: "#3b82f6",
+                  borderRadius: 6,
+                  borderSkipped: false,
+                  barThickness: 20,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: "#1e293b",
+                  padding: 12,
+                  cornerRadius: 8,
+                  displayColors: false,
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { borderDash: [4, 4], color: "#e2e8f0" },
+                  border: { display: false },
+                },
+                x: {
+                  grid: { display: false },
+                  border: { display: false },
+                },
+              },
+            },
+          });
+
+          // Reset Chat and display AI's first insight
+          document.getElementById("chatBox").innerHTML = "";
+          addMsg("AI", result.ai_insight);
+        } catch (e) {
+          alert("Error: " + e.message);
+          console.error(e);
+        } finally {
+          // Restore Button
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
+
+      async function sendChat() {
+        const input = document.getElementById("chatIn");
+        const txt = input.value.trim();
+        if (!txt) return;
+
+        addMsg("You", txt);
+        input.value = "";
+
+        // Show Typing Indicator
+        const loadingId = addLoadingIndicator();
+
+        try {
+          const res = await fetch(`${API}/chat/`, {
+            method: "POST",
+            body: JSON.stringify({
+              message: txt,
+              context: JSON.stringify(currentContext),
+            }),
+          });
+          const data = await res.json();
+
+          // Remove loading and show response
+          removeLoadingIndicator(loadingId);
+          addMsg("AI", data.response);
+        } catch (e) {
+          removeLoadingIndicator(loadingId);
+          addMsg("AI", "Sorry, I'm having trouble connecting to the server.");
+        }
+      }
+
+      function addMsg(role, text) {
+        const box = document.getElementById("chatBox");
+        const isUser = role === "You";
+        const div = document.createElement("div");
+        div.className = `message ${isUser ? "user" : "ai"}`;
+
+        // Basic Formatting for AI responses
+        if (!isUser) {
+          text = text.replace(/\n/g, "<br>");
+          // Regex to bold text between asterisks (e.g. **bold**)
+          text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        }
+
+        div.innerHTML = text;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+      }
+
+      function addLoadingIndicator() {
+        const box = document.getElementById("chatBox");
+        const id = "loading-" + Date.now();
+        const div = document.createElement("div");
+        div.id = id;
+        div.className = "message ai typing-indicator";
+        div.innerHTML = "<span></span><span></span><span></span>";
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+        return id;
+      }
+
+      function removeLoadingIndicator(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      }
+    </script>
+  </body>
+</html>
